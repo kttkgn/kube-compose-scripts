@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  gitea-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: gitea
+      POSTGRES_PASSWORD: gitea123
+      POSTGRES_DB: gitea
+    volumes:
+      - ./data/gitea-db-data:/var/lib/postgresql/data  # 数据持久化到当前路径下的 data 文件夹
+    networks:
+      - gitea-network
+    restart: always
+
+  gitea:
+    image: gitea/gitea:latest
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    ports:
+      - "3000:3000"
+      - "222:22"
+    volumes:
+      - ./data/gitea-data:/data  # 数据持久化到当前路径下的 data 文件夹
+    networks:
+      - gitea-network
+    depends_on:
+      - gitea-db
+    restart: always
+
+networks:
+  gitea-network:
+    driver: bridge
+
+volumes:
+  gitea-db-data:
+  gitea-data:
+

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.7
+    environment:
+      - NEO4J_AUTH=neo4j/testpassword  # 设置 Neo4j 默认用户名和密码
+    ports:
+      - "7474:7474"  # HTTP 接口
+      - "7687:7687"  # Bolt 协议接口
+    volumes:
+      - ./data/neo4j:/var/lib/neo4j/data  # 数据持久化到当前路径下的 data 文件夹
+      - ./conf:/var/lib/neo4j/conf  # 可选：挂载配置文件
+      - ./logs:/var/lib/neo4j/logs  # 可选：挂载日志文件
+    networks:
+      - neo4j-network
+    restart: always
+
+networks:
+  neo4j-network:
+    driver: bridge
+
+volumes:
+  neo4j-data:
+

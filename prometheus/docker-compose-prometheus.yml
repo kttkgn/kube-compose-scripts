@@ -1,0 +1,75 @@
+networks:
+    monitor:  # 创建名为 monitor 的桥接网络
+        driver: bridge
+
+volumes:  # 新增持久化存储声明
+    prom_data:  # Prometheus 数据卷
+    grafana_data:  # Grafana 数据卷
+    alertmanager_data:  # Alertmanager 数据卷
+
+
+services:
+    prometheus:
+        image: prom/prometheus  # 官方镜像
+        container_name: prometheus
+        hostname: prometheus
+        restart: always  # 自动重启
+        volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml  # 挂载配置文件
+            - ./node_down.yml:/etc/prometheus/node_down.yml    # 挂载告警规则
+            - prom_data:/prometheus  # 挂载数据卷
+        ports:
+            - "9090:9090"  # 暴露 Prometheus Web 端口
+        networks:
+            - monitor  # 连接到 monitor 网络
+
+    grafana:
+        image: grafana/grafana  # 官方镜像
+        container_name: grafana
+        hostname: grafana
+        restart: always
+        volumes:
+            - grafana_data:/var/lib/grafana  # 挂载数据卷
+        ports:
+            - "3000:3000"  # 暴露 Grafana 仪表板端口
+        networks:
+            - monitor
+
+    alertmanager:  # 新增 Alertmanager 服务
+        image: prom/alertmanager
+        container_name: alertmanager
+        hostname: alertmanager
+        restart: always
+        volumes:
+            - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+            - alertmanager_data:/alertmanager  # 挂载数据卷
+        ports:
+            - "9093:9093"  # 暴露 Alertmanager Web 端口
+        networks:
+            - monitor
+
+    node-exporter:
+        image: quay.io/prometheus/node-exporter  # 节点指标采集器
+        container_name: node-exporter
+        hostname: node-exporter
+        restart: always
+        ports:
+            - "9100:9100"  # 暴露 Node Exporter 端口
+        networks:
+            - monitor
+
+    cadvisor:
+        image: gcr.io/cadvisor/cadvisor   # 容器指标采集器
+        container_name: cadvisor
+        hostname: cadvisor
+        restart: always
+        privileged: true
+        volumes:
+            - /:/rootfs:ro                # 挂载根文件系统（只读）
+            - /var/run:/var/run:rw        # 挂载进程信息
+            - /sys:/sys:ro                # 挂载系统信息
+            - /var/lib/docker/:/var/lib/docker:ro  # 挂载 Docker 数据目录
+        ports:
+            - "8088:8080"  # 映射主机 8088 到容器 8080（避免端口冲突）
+        networks:
+            - monitor

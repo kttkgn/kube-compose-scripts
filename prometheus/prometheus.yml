@@ -1,0 +1,28 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+ 
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets: ['192.168.123.66:9093']
+ 
+rule_files:
+  - "node_down.yml"
+ 
+scrape_configs:
+ 
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['192.168.123.66:9090']
+ 
+  - job_name: 'node'
+    scrape_interval: 8s
+    static_configs:
+    - targets: ['192.168.123.66:9100']
+ 
+  - job_name: 'cadvisor'
+    scrape_interval: 8s
+    static_configs:
+    - targets: ['192.168.123.66:8088']
+

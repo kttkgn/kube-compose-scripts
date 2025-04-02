@@ -1,0 +1,20 @@
+global:
+  resolve_timeout: 5m  # 告警超时时间
+  smtp_smarthost: 'smtp.example.com:587'  # SMTP 服务器地址（示例）
+  smtp_from: 'alertmanager@example.com'   # 发件人邮箱
+  smtp_auth_username: 'alertmanager@example.com'  # SMTP 用户名
+  smtp_auth_password: 'your_password'     # SMTP 密码
+  smtp_require_tls: true                  # 启用 TLS
+
+route:  # 告警路由配置
+  group_by: ['alertname']  # 按告警名称分组
+  group_wait: 30s         # 初始等待时间
+  group_interval: 5m      # 组内发送间隔
+  repeat_interval: 1h     # 重复告警间隔
+  receiver: 'email-team'  # 默认接收者
+
+receivers:  # 接收者配置
+- name: 'email-team'
+  email_configs:
+  - to: 'devops-team@example.com'  # 收件人邮箱
+    send_resolved: true            # 发送恢复通知
