@@ -217,7 +217,7 @@ check_dependencies() {
             elif command -v yum &>/dev/null; then
                 install_cmd="yum install -y $tool"
             fi
-            log_error "缺少核心依赖工具：$tool，请执行安装命令：$install_cmd"
+            log_error "缺少核心依赖工具，请执行安装命令"
         fi
     done
 }
