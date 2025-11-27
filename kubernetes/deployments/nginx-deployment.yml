@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment  # Deployment 名称
+  namespace: default
+  labels:
+    app: nginx  # 标签，用于关联 Service
+spec:
+  replicas: 2  # 容器副本数（生产环境建议 ≥2，保证高可用）
+  selector:
+    matchLabels:
+      app: nginx  # 匹配标签为 "app: nginx" 的 Pod
+  template:
+    metadata:
+      labels:
+        app: nginx  # Pod 标签，需与 selector 一致
+    spec:
+      containers:
+      - name: nginx  # 容器名称
+        image: nginx:1.25-alpine  # Nginx 镜像（选择稳定版本，alpine 镜像体积更小）
+        ports:
+        - containerPort: 80  # 容器内部监听端口（与 Nginx 配置一致）
+        # 资源限制（避免容器占用过多集群资源）
+        resources:
+          requests:  # 最小资源需求
+            cpu: "50m"  # 50 毫核（1 核 = 1000 毫核）
+            memory: "64Mi"  # 64MB 内存
+          limits:  # 最大资源限制
+            cpu: "100m"
+            memory: "128Mi"
+        # 健康检查（保障容器可用性，K8s 会自动重启异常容器）
+        livenessProbe:  # 存活探针（检测容器是否运行）
+          httpGet:
+            path: /  # 检查路径（可自定义，如 /health）
+            port: 80
+          initialDelaySeconds: 30  # 容器启动后延迟 30 秒再检查
+          periodSeconds: 10  # 每 10 秒检查一次
+        readinessProbe:  # 就绪探针（检测容器是否可提供服务）
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        # 挂载 ConfigMap 配置（将 ConfigMap 中的文件挂载到容器内）
+        volumeMounts:
+        - name: nginx-config-volume  # 卷名称，需与下方 volumes 一致
+          mountPath: /etc/nginx/nginx.conf  # 容器内 Nginx 主配置路径
+          subPath: nginx.conf  # 挂载 ConfigMap 中的 "nginx.conf" 文件（避免覆盖目录）
+        - name: nginx-html-volume
+          mountPath: /usr/share/nginx/html/index.html  # 容器内静态页面路径
+          subPath: index.html
+      # 定义卷（关联 ConfigMap）
+      volumes:
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config  # 关联名为 "nginx-config" 的 ConfigMap
+      - name: nginx-html-volume
+        configMap:
+          name: nginx-config

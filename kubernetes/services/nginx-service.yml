@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service  # Service 名称（集群内可通过此名称访问）
+  namespace: default
+spec:
+  type: NodePort  # 服务类型：NodePort（暴露节点端口，支持外部访问）
+  selector:
+    app: nginx  # 关联标签为 "app: nginx" 的 Pod（与 Deployment 一致）
+  ports:
+  - port: 80  # Service 内部端口（集群内访问时使用）
+    targetPort: 80  # 目标 Pod 端口（与容器端口一致）
+    nodePort: 30080  # 集群节点暴露的端口（范围：30000-32767，可自定义）
