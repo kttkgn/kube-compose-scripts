@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:6.0  # 使用 MongoDB 6.0 版本镜像
